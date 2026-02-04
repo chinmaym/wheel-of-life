@@ -1,15 +1,12 @@
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { getLatestCheckIn, getCheckIns } from '../lib/storage'
 import WheelChart from '../components/WheelChart'
 import InsightsCard from '../components/InsightsCard'
 
 export default function Home() {
   const navigate = useNavigate()
-  const location = useLocation()
   const latest = getLatestCheckIn()
   const totalCheckIns = getCheckIns().length
-
-  const justCompleted = location.state?.justCompleted
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-alt)]">
@@ -29,17 +26,13 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Success banner */}
-        {justCompleted && (
-          <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 mb-4 text-sm text-center animate-[fadeIn_300ms_ease-in-out]">
-            Check-in saved! Here&apos;s your updated wheel.
-          </div>
-        )}
-
         {latest ? (
           <>
-            {/* Wheel */}
-            <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-4 mb-4">
+            {/* Wheel — tappable to see full results */}
+            <div
+              className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-4 mb-4 cursor-pointer hover:shadow-md transition-shadow duration-200"
+              onClick={() => navigate(`/results/${latest.id}`)}
+            >
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
                   Latest Check-in
@@ -61,6 +54,9 @@ export default function Home() {
                   /10 overall
                 </span>
               </div>
+              <p className="text-xs text-center text-[var(--color-primary)] mt-2">
+                Tap to see full breakdown →
+              </p>
             </div>
 
             {/* Insights */}

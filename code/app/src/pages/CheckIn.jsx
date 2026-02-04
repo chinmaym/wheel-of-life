@@ -8,6 +8,7 @@ export default function CheckIn() {
   const navigate = useNavigate()
   const [scores, setScores] = useState({})
   const [currentStep, setCurrentStep] = useState(0)
+  const [showGuide, setShowGuide] = useState(true)
 
   const category = CATEGORIES[currentStep]
   const progress = Object.keys(scores).length
@@ -23,8 +24,8 @@ export default function CheckIn() {
   }
 
   function handleSubmit() {
-    saveCheckIn(scores)
-    navigate('/', { state: { justCompleted: true } })
+    const checkIn = saveCheckIn(scores)
+    navigate(`/results/${checkIn.id}`)
   }
 
   return (
@@ -56,7 +57,7 @@ export default function CheckIn() {
 
         {/* Category card */}
         <div
-          className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mb-6 text-center animate-[fadeIn_200ms_ease-in-out]"
+          className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mb-4 text-center animate-[fadeIn_200ms_ease-in-out]"
           key={category.key}
         >
           <div className="text-5xl mb-3">{category.emoji}</div>
@@ -83,6 +84,81 @@ export default function CheckIn() {
             <p className="mt-4 text-sm font-medium" style={{ color: 'var(--color-primary)' }}>
               You rated {category.label}: {scores[category.key]}/10
             </p>
+          )}
+        </div>
+
+        {/* Guidance section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] mb-6 overflow-hidden animate-[fadeIn_200ms_ease-in-out]">
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className="w-full px-5 py-3 flex items-center justify-between cursor-pointer bg-transparent border-none text-left"
+          >
+            <span className="text-sm font-semibold text-[var(--color-primary)]">
+              💡 How do I rate this?
+            </span>
+            <span
+              className="text-[var(--color-text-secondary)] text-xs transition-transform duration-200"
+              style={{ transform: showGuide ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            >
+              ▾
+            </span>
+          </button>
+
+          {showGuide && (
+            <div className="px-5 pb-4 animate-[fadeIn_200ms_ease-in-out]">
+              {/* Guiding questions */}
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
+                  Ask yourself
+                </p>
+                <ul className="space-y-1.5">
+                  {category.questions.map((q, i) => (
+                    <li key={i} className="text-sm text-[var(--color-text)] flex gap-2">
+                      <span className="text-[var(--color-text-secondary)] shrink-0">•</span>
+                      {q}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Level descriptions */}
+              <div>
+                <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
+                  Score guide
+                </p>
+                <div className="space-y-2">
+                  {category.levels.map((level) => (
+                    <div
+                      key={level.range}
+                      className="flex gap-3 items-start text-sm"
+                    >
+                      <span
+                        className="shrink-0 inline-block w-10 text-center text-xs font-bold rounded-md py-0.5"
+                        style={{
+                          backgroundColor:
+                            level.range.startsWith('1') ? 'var(--color-low)' :
+                            level.range.startsWith('4') ? 'var(--color-medium)' :
+                            level.range.startsWith('7') ? 'var(--color-high)' :
+                            'var(--color-high)',
+                          color: '#fff',
+                          opacity: level.range.startsWith('9') ? 0.9 : 1,
+                        }}
+                      >
+                        {level.range}
+                      </span>
+                      <div>
+                        <span className="font-semibold text-[var(--color-text)]">
+                          {level.label}
+                        </span>
+                        <span className="text-[var(--color-text-secondary)]">
+                          {' — '}{level.description}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
@@ -113,19 +189,24 @@ export default function CheckIn() {
           ))}
         </div>
 
-        {/* Submit */}
-        {allDone && (
-          <button
-            onClick={handleSubmit}
-            className="w-full py-3 rounded-xl text-white font-semibold text-base cursor-pointer border-none transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-            style={{
-              background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
-            }}
-          >
-            Save Check-in
-          </button>
-        )}
       </div>
+
+      {/* Sticky Save button at bottom */}
+      {allDone && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] animate-[fadeIn_300ms_ease-in-out]">
+          <div className="max-w-lg mx-auto">
+            <button
+              onClick={handleSubmit}
+              className="w-full py-3.5 rounded-xl text-white font-semibold text-base cursor-pointer border-none transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+              }}
+            >
+              Save Check-in ✓
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

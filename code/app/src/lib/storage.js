@@ -33,7 +33,9 @@ export function saveCheckIn(scores) {
     10
 
   const checkIn = {
-    id: crypto.randomUUID(),
+    id: (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2),
     timestamp: new Date().toISOString(),
     scores,
     overallScore,
