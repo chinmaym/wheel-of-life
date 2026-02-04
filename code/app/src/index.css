@@ -12,11 +12,90 @@
   --color-text: #1e293b;
   --color-text-secondary: #64748b;
   --color-border: #e2e8f0;
+  --color-high-surface: #f0fdf4;
+  --color-high-border: #bbf7d0;
+  --color-high-text: #15803d;
+  --color-medium-surface: #fffbeb;
+  --color-medium-border: #fde68a;
+  --color-medium-text: #b45309;
+  --color-low-surface: #fef2f2;
+  --color-low-border: #fecaca;
+  --color-low-text: #b91c1c;
+}
+
+.dark {
+  --color-primary: #818cf8;
+  --color-primary-dark: #6366f1;
+  --color-secondary: #a78bfa;
+  --color-high: #34d399;
+  --color-medium: #fbbf24;
+  --color-low: #f87171;
+  --color-surface: #1e293b;
+  --color-surface-alt: #0f172a;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-border: #334155;
+  --color-high-surface: #064e3b;
+  --color-high-border: #065f46;
+  --color-high-text: #6ee7b7;
+  --color-medium-surface: #78350f;
+  --color-medium-border: #92400e;
+  --color-medium-text: #fcd34d;
+  --color-low-surface: #7f1d1d;
+  --color-low-border: #991b1b;
+  --color-low-text: #fca5a5;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Score slider */
+.score-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--slider-color) 0%,
+    var(--slider-color) var(--slider-pct),
+    var(--color-border) var(--slider-pct),
+    var(--color-border) 100%
+  );
+}
+.score-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 3px solid var(--slider-color);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: transform 0.15s ease;
+}
+.score-slider::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+}
+.score-slider::-moz-range-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 3px solid var(--slider-color);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.score-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: transparent;
 }
 
 * {

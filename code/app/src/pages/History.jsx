@@ -24,11 +24,20 @@ export default function History() {
           <h1 className="text-lg font-bold text-[var(--color-text)]">
             History
           </h1>
-          <div className="w-12" />
+          {checkIns.length >= 2 ? (
+            <button
+              onClick={() => navigate('/compare')}
+              className="text-[var(--color-primary)] text-sm font-semibold cursor-pointer bg-transparent border-none"
+            >
+              Compare
+            </button>
+          ) : (
+            <div className="w-12" />
+          )}
         </div>
 
         {checkIns.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-8 text-center">
+          <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-8 text-center">
             <div className="text-4xl mb-3">📊</div>
             <p className="text-sm text-[var(--color-text-secondary)]">
               No check-ins yet. Complete your first one to see history.
@@ -41,7 +50,7 @@ export default function History() {
               return (
                 <div
                   key={checkIn.id}
-                  className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden transition-all duration-200"
+                  className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden transition-all duration-200"
                 >
                   <button
                     onClick={() =>
@@ -114,7 +123,7 @@ export default function History() {
                               <span className="flex-1 text-[var(--color-text-secondary)]">
                                 {cat.label}
                               </span>
-                              <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="w-24 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
                                 <div
                                   className="h-full rounded-full transition-all duration-500"
                                   style={{

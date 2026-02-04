@@ -30,7 +30,8 @@ export default function Home() {
           <>
             {/* Wheel — tappable to see full results */}
             <div
-              className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-4 mb-4 cursor-pointer hover:shadow-md transition-shadow duration-200"
+              className="rounded-2xl shadow-sm border border-[var(--color-border)] p-4 mb-4 cursor-pointer hover:shadow-md transition-shadow duration-200"
+              style={{ backgroundColor: 'var(--color-surface)' }}
               onClick={() => navigate(`/results/${latest.id}`)}
             >
               <div className="flex items-center justify-between mb-2">
@@ -64,7 +65,7 @@ export default function Home() {
           </>
         ) : (
           /* Empty state */
-          <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-8 text-center mb-4">
+          <div className="rounded-2xl shadow-sm border border-[var(--color-border)] p-8 text-center mb-4" style={{ backgroundColor: 'var(--color-surface)' }}>
             <div className="text-5xl mb-4">🎯</div>
             <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">
               Welcome!
@@ -90,9 +91,9 @@ export default function Home() {
           {totalCheckIns > 0 && (
             <button
               onClick={() => navigate('/history')}
-              className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gray-100 active:scale-[0.98]"
+              className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
               style={{
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-surface)',
                 color: 'var(--color-primary)',
                 border: '1.5px solid var(--color-primary)',
               }}

@@ -6,8 +6,11 @@ export default function InsightsCard({ scores }) {
   return (
     <div className="space-y-4">
       {needsAttention.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-red-700 mb-2">
+        <div
+          className="border rounded-xl p-4"
+          style={{ backgroundColor: 'var(--color-low-surface)', borderColor: 'var(--color-low-border)' }}
+        >
+          <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-low-text)' }}>
             Needs Attention
           </h3>
           <div className="space-y-1">
@@ -19,7 +22,7 @@ export default function InsightsCard({ scores }) {
                 <span>
                   {item.emoji} {item.label}
                 </span>
-                <span className="font-semibold text-red-600">
+                <span className="font-semibold" style={{ color: 'var(--color-low-text)' }}>
                   {item.score}/10
                 </span>
               </div>
@@ -29,8 +32,11 @@ export default function InsightsCard({ scores }) {
       )}
 
       {strengths.length > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <h3 className="text-sm font-semibold text-green-700 mb-2">
+        <div
+          className="border rounded-xl p-4"
+          style={{ backgroundColor: 'var(--color-high-surface)', borderColor: 'var(--color-high-border)' }}
+        >
+          <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-high-text)' }}>
             Strengths
           </h3>
           <div className="space-y-1">
@@ -42,7 +48,7 @@ export default function InsightsCard({ scores }) {
                 <span>
                   {item.emoji} {item.label}
                 </span>
-                <span className="font-semibold text-green-600">
+                <span className="font-semibold" style={{ color: 'var(--color-high-text)' }}>
                   {item.score}/10
                 </span>
               </div>

@@ -64,7 +64,7 @@ export default function Results() {
         </div>
 
         {/* Overall score */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-5 mb-4 text-center animate-[fadeIn_400ms_ease-in-out]">
+        <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 mb-4 text-center animate-[fadeIn_400ms_ease-in-out]">
           <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
             Overall Score
           </p>
@@ -89,7 +89,7 @@ export default function Results() {
         </div>
 
         {/* Wheel chart */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-4 mb-4 animate-[fadeIn_500ms_ease-in-out]">
+        <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4 mb-4 animate-[fadeIn_500ms_ease-in-out]">
           <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 text-center">
             Your Wheel
           </p>
@@ -97,7 +97,7 @@ export default function Results() {
         </div>
 
         {/* Category breakdown */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-5 mb-4 animate-[fadeIn_600ms_ease-in-out]">
+        <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 mb-4 animate-[fadeIn_600ms_ease-in-out]">
           <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">
             Category Breakdown
           </p>
@@ -133,7 +133,7 @@ export default function Results() {
                       )}
                     </div>
                   </div>
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2.5 bg-[var(--color-border)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
@@ -154,15 +154,18 @@ export default function Results() {
         {/* Insights */}
         <div className="space-y-3 mb-6 animate-[fadeIn_700ms_ease-in-out]">
           {strengths.length > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-green-700 mb-2">
+            <div
+              className="border rounded-xl p-4"
+              style={{ backgroundColor: 'var(--color-high-surface)', borderColor: 'var(--color-high-border)' }}
+            >
+              <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-high-text)' }}>
                 💪 Your Strengths
               </h3>
               <div className="space-y-1">
                 {strengths.map((item) => (
                   <div key={item.key} className="flex items-center justify-between text-sm">
                     <span>{item.emoji} {item.label}</span>
-                    <span className="font-semibold text-green-600">{item.score}/10</span>
+                    <span className="font-semibold" style={{ color: 'var(--color-high-text)' }}>{item.score}/10</span>
                   </div>
                 ))}
               </div>
@@ -170,18 +173,21 @@ export default function Results() {
           )}
 
           {needsAttention.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-amber-700 mb-2">
+            <div
+              className="border rounded-xl p-4"
+              style={{ backgroundColor: 'var(--color-medium-surface)', borderColor: 'var(--color-medium-border)' }}
+            >
+              <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-medium-text)' }}>
                 🎯 Focus Areas
               </h3>
-              <p className="text-xs text-amber-600 mb-2">
+              <p className="text-xs mb-2" style={{ color: 'var(--color-medium-text)' }}>
                 Consider giving extra attention to these areas
               </p>
               <div className="space-y-1">
                 {needsAttention.map((item) => (
                   <div key={item.key} className="flex items-center justify-between text-sm">
                     <span>{item.emoji} {item.label}</span>
-                    <span className="font-semibold text-amber-600">{item.score}/10</span>
+                    <span className="font-semibold" style={{ color: 'var(--color-medium-text)' }}>{item.score}/10</span>
                   </div>
                 ))}
               </div>
@@ -200,17 +206,28 @@ export default function Results() {
           >
             Done
           </button>
+          <button
+            onClick={() => navigate(`/checkin?edit=${checkIn.id}`)}
+            className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-primary)',
+              border: '1.5px solid var(--color-primary)',
+            }}
+          >
+            Edit
+          </button>
           {checkIns.length > 1 && (
             <button
               onClick={() => navigate('/history')}
-              className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gray-100 active:scale-[0.98]"
+              className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
               style={{
-                backgroundColor: 'white',
-                color: 'var(--color-primary)',
-                border: '1.5px solid var(--color-primary)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text-secondary)',
+                border: '1.5px solid var(--color-border)',
               }}
             >
-              View History
+              History
             </button>
           )}
         </div>

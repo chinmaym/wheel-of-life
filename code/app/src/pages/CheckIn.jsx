@@ -1,31 +1,41 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useCallback } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CATEGORIES } from '../lib/categories'
-import { saveCheckIn } from '../lib/storage'
-import ScoreButton from '../components/ScoreButton'
+import { saveCheckIn, updateCheckIn, getCheckInById } from '../lib/storage'
+import ScoreSlider from '../components/ScoreSlider'
 
 export default function CheckIn() {
   const navigate = useNavigate()
-  const [scores, setScores] = useState({})
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('edit')
+  const editingCheckIn = editId ? getCheckInById(editId) : null
+
+  const [scores, setScores] = useState(() => editingCheckIn ? { ...editingCheckIn.scores } : {})
   const [currentStep, setCurrentStep] = useState(0)
   const [showGuide, setShowGuide] = useState(true)
+  const advanceTimer = useRef(null)
 
   const category = CATEGORIES[currentStep]
   const progress = Object.keys(scores).length
   const allDone = progress === CATEGORIES.length
 
-  function handleScore(value) {
-    const updated = { ...scores, [category.key]: value }
-    setScores(updated)
+  const handleScore = useCallback((value) => {
+    setScores((prev) => ({ ...prev, [category.key]: value }))
 
+    if (advanceTimer.current) clearTimeout(advanceTimer.current)
     if (currentStep < CATEGORIES.length - 1) {
-      setTimeout(() => setCurrentStep(currentStep + 1), 200)
+      advanceTimer.current = setTimeout(() => setCurrentStep((s) => s + 1), 800)
     }
-  }
+  }, [category.key, currentStep])
 
   function handleSubmit() {
-    const checkIn = saveCheckIn(scores)
-    navigate(`/results/${checkIn.id}`)
+    if (editingCheckIn) {
+      updateCheckIn(editingCheckIn.id, scores)
+      navigate(`/results/${editingCheckIn.id}`)
+    } else {
+      const checkIn = saveCheckIn(scores)
+      navigate(`/results/${checkIn.id}`)
+    }
   }
 
   return (
@@ -37,10 +47,10 @@ export default function CheckIn() {
             onClick={() => navigate('/')}
             className="text-[var(--color-text-secondary)] text-sm cursor-pointer bg-transparent border-none"
           >
-            ← Back
+            ← {editingCheckIn ? 'Cancel' : 'Back'}
           </button>
           <span className="text-sm text-[var(--color-text-secondary)]">
-            {progress}/{CATEGORIES.length}
+            {editingCheckIn ? 'Editing' : `${progress}/${CATEGORIES.length}`}
           </span>
         </div>
 
@@ -57,7 +67,7 @@ export default function CheckIn() {
 
         {/* Category card */}
         <div
-          className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mb-4 text-center animate-[fadeIn_200ms_ease-in-out]"
+          className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mb-4 text-center animate-[fadeIn_200ms_ease-in-out]"
           key={category.key}
         >
           <div className="text-5xl mb-3">{category.emoji}</div>
@@ -68,27 +78,15 @@ export default function CheckIn() {
             How satisfied are you with your {category.label.toLowerCase()}?
           </p>
 
-          {/* Score buttons */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => (
-              <ScoreButton
-                key={value}
-                value={value}
-                selected={scores[category.key]}
-                onClick={handleScore}
-              />
-            ))}
-          </div>
-
-          {scores[category.key] && (
-            <p className="mt-4 text-sm font-medium" style={{ color: 'var(--color-primary)' }}>
-              You rated {category.label}: {scores[category.key]}/10
-            </p>
-          )}
+          {/* Score slider */}
+          <ScoreSlider
+            value={scores[category.key]}
+            onChange={handleScore}
+          />
         </div>
 
         {/* Guidance section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[var(--color-border)] mb-6 overflow-hidden animate-[fadeIn_200ms_ease-in-out]">
+        <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] mb-6 overflow-hidden animate-[fadeIn_200ms_ease-in-out]">
           <button
             onClick={() => setShowGuide(!showGuide)}
             className="w-full px-5 py-3 flex items-center justify-between cursor-pointer bg-transparent border-none text-left"
@@ -140,7 +138,7 @@ export default function CheckIn() {
                             level.range.startsWith('4') ? 'var(--color-medium)' :
                             level.range.startsWith('7') ? 'var(--color-high)' :
                             'var(--color-high)',
-                          color: '#fff',
+                          color: 'var(--color-surface)',
                           opacity: level.range.startsWith('9') ? 0.9 : 1,
                         }}
                       >
@@ -179,7 +177,7 @@ export default function CheckIn() {
                       ? 'var(--color-border)'
                       : 'transparent',
                 color:
-                  scores[cat.key] != null || i === currentStep ? '#fff' : 'var(--color-text-secondary)',
+                  scores[cat.key] != null || i === currentStep ? 'var(--color-surface)' : 'var(--color-text-secondary)',
                 opacity: scores[cat.key] != null && i !== currentStep ? 0.6 : 1,
               }}
               aria-label={`Go to ${cat.label}`}
@@ -202,7 +200,7 @@ export default function CheckIn() {
                 background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
               }}
             >
-              Save Check-in ✓
+              {editingCheckIn ? 'Update Check-in ✓' : 'Save Check-in ✓'}
             </button>
           </div>
         </div>

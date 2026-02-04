@@ -46,6 +46,32 @@ export function saveCheckIn(scores) {
   return checkIn
 }
 
+export function getCheckInById(id) {
+  const data = loadData()
+  return data.checkIns.find((c) => c.id === id) || null
+}
+
+export function updateCheckIn(id, scores) {
+  const data = loadData()
+  const index = data.checkIns.findIndex((c) => c.id === id)
+  if (index === -1) return null
+
+  const values = Object.values(scores)
+  const overallScore =
+    Math.round((values.reduce((sum, v) => sum + v, 0) / values.length) * 10) /
+    10
+
+  data.checkIns[index] = {
+    ...data.checkIns[index],
+    scores,
+    overallScore,
+    lastEditedAt: new Date().toISOString(),
+  }
+
+  saveData(data)
+  return data.checkIns[index]
+}
+
 export function deleteCheckIn(id) {
   const data = loadData()
   data.checkIns = data.checkIns.filter((c) => c.id !== id)

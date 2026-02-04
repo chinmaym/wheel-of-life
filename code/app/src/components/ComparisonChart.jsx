@@ -5,14 +5,16 @@ import {
   PolarRadiusAxis,
   Radar,
   ResponsiveContainer,
+  Legend,
   Tooltip,
 } from 'recharts'
 import { CATEGORIES } from '../lib/categories'
 
-export default function WheelChart({ scores, size = 300, showLabels = true }) {
+export default function ComparisonChart({ scoresA, scoresB, labelA, labelB, size = 300 }) {
   const data = CATEGORIES.map((cat) => ({
-    category: showLabels ? cat.label : cat.emoji,
-    score: scores[cat.key] ?? 0,
+    category: cat.emoji,
+    [labelA]: scoresA[cat.key] ?? 0,
+    [labelB]: scoresB[cat.key] ?? 0,
     fullMark: 10,
   }))
 
@@ -23,7 +25,7 @@ export default function WheelChart({ scores, size = 300, showLabels = true }) {
           <PolarGrid stroke="var(--color-border)" />
           <PolarAngleAxis
             dataKey="category"
-            tick={{ fontSize: showLabels ? 11 : 16, fill: 'var(--color-text-secondary)' }}
+            tick={{ fontSize: 16, fill: 'var(--color-text-secondary)' }}
           />
           <PolarRadiusAxis
             angle={90}
@@ -32,13 +34,24 @@ export default function WheelChart({ scores, size = 300, showLabels = true }) {
             tickCount={6}
           />
           <Radar
-            name="Score"
-            dataKey="score"
+            name={labelA}
+            dataKey={labelA}
             stroke="var(--color-primary)"
             fill="var(--color-primary)"
             fillOpacity={0.25}
             strokeWidth={2}
-            animationDuration={800}
+          />
+          <Radar
+            name={labelB}
+            dataKey={labelB}
+            stroke="var(--color-secondary)"
+            fill="var(--color-secondary)"
+            fillOpacity={0.15}
+            strokeWidth={2}
+            strokeDasharray="5 5"
+          />
+          <Legend
+            wrapperStyle={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}
           />
           <Tooltip
             contentStyle={{
