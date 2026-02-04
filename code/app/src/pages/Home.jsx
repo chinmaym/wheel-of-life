@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getLatestCheckIn, getCheckIns } from '../lib/storage'
+import { useTheme } from '../lib/theme'
 import WheelChart from '../components/WheelChart'
 import InsightsCard from '../components/InsightsCard'
 
@@ -7,12 +9,26 @@ export default function Home() {
   const navigate = useNavigate()
   const latest = getLatestCheckIn()
   const totalCheckIns = getCheckIns().length
+  const { theme, setTheme } = useTheme()
+  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-alt)]">
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 relative">
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="absolute right-0 top-0 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer border transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              backgroundColor: showSettings ? 'var(--color-primary)' : 'var(--color-surface)',
+              borderColor: 'var(--color-border)',
+              color: showSettings ? 'white' : 'var(--color-text-secondary)',
+            }}
+            aria-label="Settings"
+          >
+            <span className="text-sm">⚙️</span>
+          </button>
           <h1
             className="text-2xl font-bold bg-clip-text text-transparent"
             style={{
@@ -25,6 +41,37 @@ export default function Home() {
             Track your life balance
           </p>
         </div>
+
+        {/* Settings panel */}
+        {showSettings && (
+          <div
+            className="rounded-2xl shadow-sm border border-[var(--color-border)] p-5 mb-4 animate-[fadeIn_200ms_ease-in-out]"
+            style={{ backgroundColor: 'var(--color-surface)' }}
+          >
+            <h3 className="text-sm font-semibold text-[var(--color-text)] mb-3">Appearance</h3>
+            <div className="flex gap-2">
+              {[
+                { key: 'light', label: 'Light', icon: '☀️' },
+                { key: 'dark', label: 'Dark', icon: '🌙' },
+                { key: 'system', label: 'Auto', icon: '💻' },
+              ].map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => setTheme(opt.key)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium cursor-pointer border transition-all duration-200"
+                  style={{
+                    backgroundColor: theme === opt.key ? 'var(--color-primary)' : 'transparent',
+                    borderColor: theme === opt.key ? 'var(--color-primary)' : 'var(--color-border)',
+                    color: theme === opt.key ? 'white' : 'var(--color-text-secondary)',
+                  }}
+                >
+                  <span className="mr-1">{opt.icon}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {latest ? (
           <>

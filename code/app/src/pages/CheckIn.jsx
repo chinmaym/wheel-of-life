@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CATEGORIES } from '../lib/categories'
 import { saveCheckIn, updateCheckIn, getCheckInById } from '../lib/storage'
@@ -13,20 +13,28 @@ export default function CheckIn() {
   const [scores, setScores] = useState(() => editingCheckIn ? { ...editingCheckIn.scores } : {})
   const [currentStep, setCurrentStep] = useState(0)
   const [showGuide, setShowGuide] = useState(true)
-  const advanceTimer = useRef(null)
 
   const category = CATEGORIES[currentStep]
   const progress = Object.keys(scores).length
   const allDone = progress === CATEGORIES.length
+  const currentHasScore = scores[category.key] != null
+  const isLastStep = currentStep === CATEGORIES.length - 1
 
   const handleScore = useCallback((value) => {
     setScores((prev) => ({ ...prev, [category.key]: value }))
+  }, [category.key])
 
-    if (advanceTimer.current) clearTimeout(advanceTimer.current)
+  function handleNext() {
     if (currentStep < CATEGORIES.length - 1) {
-      advanceTimer.current = setTimeout(() => setCurrentStep((s) => s + 1), 800)
+      setCurrentStep((s) => s + 1)
     }
-  }, [category.key, currentStep])
+  }
+
+  function handlePrev() {
+    if (currentStep > 0) {
+      setCurrentStep((s) => s - 1)
+    }
+  }
 
   function handleSubmit() {
     if (editingCheckIn) {
@@ -160,8 +168,8 @@ export default function CheckIn() {
           )}
         </div>
 
-        {/* Step navigation */}
-        <div className="flex gap-2 justify-center flex-wrap mb-6">
+        {/* Step navigation dots */}
+        <div className="flex gap-2 justify-center flex-wrap mb-4">
           {CATEGORIES.map((cat, i) => (
             <button
               key={cat.key}
@@ -187,24 +195,47 @@ export default function CheckIn() {
           ))}
         </div>
 
-      </div>
-
-      {/* Sticky Save button at bottom */}
-      {allDone && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] animate-[fadeIn_300ms_ease-in-out]">
-          <div className="max-w-lg mx-auto">
+        {/* Navigation buttons */}
+        <div className="flex gap-3 mb-6">
+          {currentStep > 0 && (
+            <button
+              onClick={handlePrev}
+              className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text-secondary)',
+                border: '1.5px solid var(--color-border)',
+              }}
+            >
+              ← Previous
+            </button>
+          )}
+          {!isLastStep ? (
+            <button
+              onClick={handleNext}
+              disabled={!currentHasScore}
+              className="flex-1 py-3 rounded-xl text-white font-semibold text-sm cursor-pointer border-none transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
+              }}
+            >
+              Next →
+            </button>
+          ) : (
             <button
               onClick={handleSubmit}
-              className="w-full py-3.5 rounded-xl text-white font-semibold text-base cursor-pointer border-none transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
+              disabled={!allDone}
+              className="flex-1 py-3 rounded-xl text-white font-semibold text-sm cursor-pointer border-none transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
                 background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
               }}
             >
               {editingCheckIn ? 'Update Check-in ✓' : 'Save Check-in ✓'}
             </button>
-          </div>
+          )}
         </div>
-      )}
+
+      </div>
     </div>
   )
 }
