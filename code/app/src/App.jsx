@@ -5,7 +5,7 @@ import CheckIn from './pages/CheckIn'
 import History from './pages/History'
 import Results from './pages/Results'
 import Compare from './pages/Compare'
-// ThemeToggle moved to Home settings page
+import Goals from './pages/Goals'
 import Onboarding from './components/Onboarding'
 import { isOnboardingComplete, completeOnboarding } from './lib/onboarding'
 import './App.css'
@@ -21,6 +21,7 @@ export default function App() {
         <Route path="/history" element={<History />} />
         <Route path="/results/:id" element={<Results />} />
         <Route path="/compare" element={<Compare />} />
+        <Route path="/goals" element={<Goals />} />
       </Routes>
       {showOnboarding && (
         <Onboarding

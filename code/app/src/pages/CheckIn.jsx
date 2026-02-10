@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { CATEGORIES } from '../lib/categories'
+import { CATEGORIES, calculateScoresFromAnswers } from '../lib/categories'
 import { saveCheckIn, updateCheckIn, getCheckInById } from '../lib/storage'
-import ScoreSlider from '../components/ScoreSlider'
+import QuestionCard from '../components/QuestionCard'
 
 export default function CheckIn() {
   const navigate = useNavigate()
@@ -10,18 +10,34 @@ export default function CheckIn() {
   const editId = searchParams.get('edit')
   const editingCheckIn = editId ? getCheckInById(editId) : null
 
-  const [scores, setScores] = useState(() => editingCheckIn ? { ...editingCheckIn.scores } : {})
+  // answers: { health: [0, 2, 1], career: [3, 1, 2], ... }
+  // Each array holds the selected answer index for each question in that category
+  const [answers, setAnswers] = useState(() =>
+    editingCheckIn?.answers && Object.keys(editingCheckIn.answers).length > 0
+      ? { ...editingCheckIn.answers }
+      : {}
+  )
   const [currentStep, setCurrentStep] = useState(0)
-  const [showGuide, setShowGuide] = useState(true)
 
   const category = CATEGORIES[currentStep]
-  const progress = Object.keys(scores).length
-  const allDone = progress === CATEGORIES.length
-  const currentHasScore = scores[category.key] != null
+  const categoryAnswers = answers[category.key] || []
+  const allQuestionsAnswered = categoryAnswers.length === category.questions.length &&
+    categoryAnswers.every((a) => a != null)
+
+  // Count how many categories are fully answered
+  const completedCategories = CATEGORIES.filter((cat) => {
+    const a = answers[cat.key] || []
+    return a.length === cat.questions.length && a.every((v) => v != null)
+  }).length
+  const allDone = completedCategories === CATEGORIES.length
   const isLastStep = currentStep === CATEGORIES.length - 1
 
-  const handleScore = useCallback((value) => {
-    setScores((prev) => ({ ...prev, [category.key]: value }))
+  const handleAnswerSelect = useCallback((questionIndex, answerIndex) => {
+    setAnswers((prev) => {
+      const current = [...(prev[category.key] || [])]
+      current[questionIndex] = answerIndex
+      return { ...prev, [category.key]: current }
+    })
   }, [category.key])
 
   function handleNext() {
@@ -37,14 +53,26 @@ export default function CheckIn() {
   }
 
   function handleSubmit() {
+    const scores = calculateScoresFromAnswers(answers)
     if (editingCheckIn) {
-      updateCheckIn(editingCheckIn.id, scores)
+      updateCheckIn(editingCheckIn.id, scores, answers)
       navigate(`/results/${editingCheckIn.id}`)
     } else {
-      const checkIn = saveCheckIn(scores)
+      const checkIn = saveCheckIn(scores, answers)
       navigate(`/results/${checkIn.id}`)
     }
   }
+
+  // Calculate a preview score for the current category if all questions are answered
+  const previewScore = allQuestionsAnswered
+    ? (() => {
+        const values = categoryAnswers.map(
+          (idx, qIdx) => category.questions[qIdx].answers[idx].value
+        )
+        const avg = values.reduce((a, b) => a + b, 0) / values.length
+        return Math.round(avg * 10) / 10
+      })()
+    : null
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-alt)]">
@@ -58,7 +86,7 @@ export default function CheckIn() {
             ← {editingCheckIn ? 'Cancel' : 'Back'}
           </button>
           <span className="text-sm text-[var(--color-text-secondary)]">
-            {editingCheckIn ? 'Editing' : `${progress}/${CATEGORIES.length}`}
+            {editingCheckIn ? 'Editing' : `${completedCategories}/${CATEGORIES.length}`}
           </span>
         </div>
 
@@ -67,132 +95,80 @@ export default function CheckIn() {
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{
-              width: `${(progress / CATEGORIES.length) * 100}%`,
+              width: `${(completedCategories / CATEGORIES.length) * 100}%`,
               background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
             }}
           />
         </div>
 
-        {/* Category card */}
+        {/* Category card with questions */}
         <div
-          className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mb-4 text-center animate-[fadeIn_200ms_ease-in-out]"
+          className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mb-4 animate-[fadeIn_200ms_ease-in-out]"
           key={category.key}
         >
-          <div className="text-5xl mb-3">{category.emoji}</div>
-          <h2 className="text-xl font-bold text-[var(--color-text)] mb-1">
-            {category.label}
-          </h2>
-          <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-            How satisfied are you with your {category.label.toLowerCase()}?
-          </p>
+          <div className="text-center mb-5">
+            <div className="text-5xl mb-3">{category.emoji}</div>
+            <h2 className="text-xl font-bold text-[var(--color-text)] mb-1">
+              {category.label}
+            </h2>
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Answer the questions below
+            </p>
+          </div>
 
-          {/* Score slider */}
-          <ScoreSlider
-            value={scores[category.key]}
-            onChange={handleScore}
-          />
-        </div>
+          {/* Questions */}
+          {category.questions.map((question, qIdx) => (
+            <QuestionCard
+              key={qIdx}
+              question={question}
+              questionIndex={qIdx}
+              totalQuestions={category.questions.length}
+              selectedIndex={categoryAnswers[qIdx] ?? null}
+              onSelect={(answerIdx) => handleAnswerSelect(qIdx, answerIdx)}
+            />
+          ))}
 
-        {/* Guidance section */}
-        <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] mb-6 overflow-hidden animate-[fadeIn_200ms_ease-in-out]">
-          <button
-            onClick={() => setShowGuide(!showGuide)}
-            className="w-full px-5 py-3 flex items-center justify-between cursor-pointer bg-transparent border-none text-left"
-          >
-            <span className="text-sm font-semibold text-[var(--color-primary)]">
-              💡 How do I rate this?
-            </span>
-            <span
-              className="text-[var(--color-text-secondary)] text-xs transition-transform duration-200"
-              style={{ transform: showGuide ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          {/* Preview score when all questions answered */}
+          {previewScore != null && (
+            <div
+              className="mt-4 pt-4 text-center animate-[fadeIn_200ms_ease-in-out]"
+              style={{ borderTop: '1px solid var(--color-border)' }}
             >
-              ▾
-            </span>
-          </button>
-
-          {showGuide && (
-            <div className="px-5 pb-4 animate-[fadeIn_200ms_ease-in-out]">
-              {/* Guiding questions */}
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
-                  Ask yourself
-                </p>
-                <ul className="space-y-1.5">
-                  {category.questions.map((q, i) => (
-                    <li key={i} className="text-sm text-[var(--color-text)] flex gap-2">
-                      <span className="text-[var(--color-text-secondary)] shrink-0">•</span>
-                      {q}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Level descriptions */}
-              <div>
-                <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2">
-                  Score guide
-                </p>
-                <div className="space-y-2">
-                  {category.levels.map((level) => (
-                    <div
-                      key={level.range}
-                      className="flex gap-3 items-start text-sm"
-                    >
-                      <span
-                        className="shrink-0 inline-block w-10 text-center text-xs font-bold rounded-md py-0.5"
-                        style={{
-                          backgroundColor:
-                            level.range.startsWith('1') ? 'var(--color-low)' :
-                            level.range.startsWith('4') ? 'var(--color-medium)' :
-                            level.range.startsWith('7') ? 'var(--color-high)' :
-                            'var(--color-high)',
-                          color: 'var(--color-surface)',
-                          opacity: level.range.startsWith('9') ? 0.9 : 1,
-                        }}
-                      >
-                        {level.range}
-                      </span>
-                      <div>
-                        <span className="font-semibold text-[var(--color-text)]">
-                          {level.label}
-                        </span>
-                        <span className="text-[var(--color-text-secondary)]">
-                          {' — '}{level.description}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <span className="text-sm text-[var(--color-text-secondary)]">Your score: </span>
+              <span className="text-2xl font-bold text-[var(--color-primary)]">{previewScore}</span>
+              <span className="text-sm text-[var(--color-text-secondary)]">/10</span>
             </div>
           )}
         </div>
 
         {/* Step navigation dots */}
         <div className="flex gap-2 justify-center flex-wrap mb-4">
-          {CATEGORIES.map((cat, i) => (
-            <button
-              key={cat.key}
-              onClick={() => setCurrentStep(i)}
-              className="w-8 h-8 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 border-none"
-              style={{
-                backgroundColor:
-                  scores[cat.key] != null
-                    ? i === currentStep
+          {CATEGORIES.map((cat, i) => {
+            const catAnswers = answers[cat.key] || []
+            const catDone = catAnswers.length === cat.questions.length &&
+              catAnswers.every((v) => v != null)
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setCurrentStep(i)}
+                className="w-8 h-8 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 border-none"
+                style={{
+                  backgroundColor:
+                    catDone
                       ? 'var(--color-primary)'
-                      : 'var(--color-primary)'
-                    : i === currentStep
-                      ? 'var(--color-border)'
-                      : 'transparent',
-                color:
-                  scores[cat.key] != null || i === currentStep ? 'var(--color-surface)' : 'var(--color-text-secondary)',
-                opacity: scores[cat.key] != null && i !== currentStep ? 0.6 : 1,
-              }}
-              aria-label={`Go to ${cat.label}`}
-            >
-              {cat.emoji}
-            </button>
-          ))}
+                      : i === currentStep
+                        ? 'var(--color-border)'
+                        : 'transparent',
+                  color:
+                    catDone || i === currentStep ? 'var(--color-surface)' : 'var(--color-text-secondary)',
+                  opacity: catDone && i !== currentStep ? 0.6 : 1,
+                }}
+                aria-label={`Go to ${cat.label}`}
+              >
+                {cat.emoji}
+              </button>
+            )
+          })}
         </div>
 
         {/* Navigation buttons */}
@@ -213,7 +189,7 @@ export default function CheckIn() {
           {!isLastStep ? (
             <button
               onClick={handleNext}
-              disabled={!currentHasScore}
+              disabled={!allQuestionsAnswered}
               className="flex-1 py-3 rounded-xl text-white font-semibold text-sm cursor-pointer border-none transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
                 background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',

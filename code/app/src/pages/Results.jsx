@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { getCheckIns } from '../lib/storage'
+import { getCheckIns, getGoals } from '../lib/storage'
 import { CATEGORIES } from '../lib/categories'
 import { getScoreColor, getScoreLabel, getInsights } from '../lib/insights'
 import WheelChart from '../components/WheelChart'
@@ -8,6 +8,8 @@ export default function Results() {
   const navigate = useNavigate()
   const { id } = useParams()
   const checkIns = getCheckIns()
+  const goals = getGoals()
+  const hasGoals = Object.keys(goals).length > 0
 
   const checkIn = checkIns.find((c) => c.id === id)
   // Find the previous check-in (the one right before this one chronologically)
@@ -93,7 +95,7 @@ export default function Results() {
           <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 text-center">
             Your Wheel
           </p>
-          <WheelChart scores={checkIn.scores} size={280} showLabels={false} />
+          <WheelChart scores={checkIn.scores} goals={hasGoals ? goals : undefined} size={280} showLabels={false} />
         </div>
 
         {/* Category breakdown */}
@@ -105,6 +107,8 @@ export default function Results() {
             {CATEGORIES.map((cat) => {
               const score = checkIn.scores[cat.key]
               const delta = getDelta(cat.key)
+              const goal = goals[cat.key]
+              const goalReached = goal && score >= goal.targetScore
               return (
                 <div key={cat.key}>
                   <div className="flex items-center justify-between mb-1">
@@ -121,6 +125,14 @@ export default function Results() {
                       >
                         {score}/10
                       </span>
+                      {goal && (
+                        <span
+                          className="text-xs"
+                          style={{ color: goalReached ? 'var(--color-high)' : 'var(--color-text-secondary)' }}
+                        >
+                          {goalReached ? '✓' : `→ ${goal.targetScore}`}
+                        </span>
+                      )}
                       {delta !== null && delta !== 0 && (
                         <span
                           className="text-xs font-medium"
@@ -133,7 +145,7 @@ export default function Results() {
                       )}
                     </div>
                   </div>
-                  <div className="w-full h-2.5 bg-[var(--color-border)] rounded-full overflow-hidden">
+                  <div className="relative w-full h-2.5 bg-[var(--color-border)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
@@ -141,6 +153,17 @@ export default function Results() {
                         backgroundColor: getScoreColor(score),
                       }}
                     />
+                    {/* Goal marker */}
+                    {goal && (
+                      <div
+                        className="absolute top-0 h-full w-0.5"
+                        style={{
+                          left: `${goal.targetScore * 10}%`,
+                          backgroundColor: 'var(--color-secondary)',
+                          opacity: 0.6,
+                        }}
+                      />
+                    )}
                   </div>
                   <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
                     {getScoreLabel(score)}

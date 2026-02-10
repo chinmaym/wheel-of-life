@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getLatestCheckIn, getCheckIns } from '../lib/storage'
+import { getLatestCheckIn, getCheckIns, getGoals, getGoalProgress } from '../lib/storage'
+import { CATEGORIES } from '../lib/categories'
 import { useTheme } from '../lib/theme'
+import { getScoreColor } from '../lib/insights'
 import WheelChart from '../components/WheelChart'
 import InsightsCard from '../components/InsightsCard'
 
@@ -9,8 +11,12 @@ export default function Home() {
   const navigate = useNavigate()
   const latest = getLatestCheckIn()
   const totalCheckIns = getCheckIns().length
+  const goals = getGoals()
+  const goalProgress = latest ? getGoalProgress(goals, latest.scores) : []
   const { theme, setTheme } = useTheme()
   const [showSettings, setShowSettings] = useState(false)
+
+  const hasGoals = Object.keys(goals).length > 0
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-alt)]">
@@ -93,7 +99,7 @@ export default function Home() {
                   })}
                 </span>
               </div>
-              <WheelChart scores={latest.scores} size={280} showLabels={false} />
+              <WheelChart scores={latest.scores} goals={hasGoals ? goals : undefined} size={280} showLabels={false} />
               <div className="text-center mt-2">
                 <span className="text-3xl font-bold text-[var(--color-primary)]">
                   {latest.overallScore}
@@ -109,6 +115,60 @@ export default function Home() {
 
             {/* Insights */}
             <InsightsCard scores={latest.scores} />
+
+            {/* Goal progress */}
+            {hasGoals && goalProgress.length > 0 && (
+              <div
+                className="rounded-2xl shadow-sm border border-[var(--color-border)] p-5 mt-4 animate-[fadeIn_200ms_ease-in-out]"
+                style={{ backgroundColor: 'var(--color-surface)' }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">
+                    Goal Progress
+                  </h3>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); navigate('/goals') }}
+                    className="text-xs cursor-pointer bg-transparent border-none"
+                    style={{ color: 'var(--color-primary)' }}
+                  >
+                    Edit goals
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {goalProgress.map((gp) => {
+                    const cat = CATEGORIES.find((c) => c.key === gp.categoryKey)
+                    return (
+                      <div key={gp.categoryKey}>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">{cat?.emoji}</span>
+                            <span className="text-sm font-medium text-[var(--color-text)]">
+                              {cat?.label}
+                            </span>
+                          </div>
+                          <span
+                            className="text-sm font-bold"
+                            style={{ color: gp.isCompleted ? 'var(--color-high)' : 'var(--color-text)' }}
+                          >
+                            {gp.currentScore}/{gp.targetScore}
+                            {gp.isCompleted && ' ✓'}
+                          </span>
+                        </div>
+                        <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-border)' }}>
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${gp.progress}%`,
+                              backgroundColor: gp.isCompleted ? 'var(--color-high)' : 'var(--color-primary)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </>
         ) : (
           /* Empty state */
@@ -135,17 +195,28 @@ export default function Home() {
           >
             {latest ? 'New Check-in' : 'Start Check-in'}
           </button>
+          <button
+            onClick={() => navigate('/goals')}
+            className="py-3 px-5 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-primary)',
+              border: '1.5px solid var(--color-primary)',
+            }}
+          >
+            🎯 Goals
+          </button>
           {totalCheckIns > 0 && (
             <button
               onClick={() => navigate('/history')}
-              className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
+              className="py-3 px-5 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
               style={{
                 backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-primary)',
-                border: '1.5px solid var(--color-primary)',
+                color: 'var(--color-text-secondary)',
+                border: '1.5px solid var(--color-border)',
               }}
             >
-              History ({totalCheckIns})
+              History
             </button>
           )}
         </div>
