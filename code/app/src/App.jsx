@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import CheckIn from './pages/CheckIn'
 import History from './pages/History'
@@ -14,7 +14,7 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(!isOnboardingComplete())
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/checkin" element={<CheckIn />} />
@@ -31,6 +31,6 @@ export default function App() {
           }}
         />
       )}
-    </BrowserRouter>
+    </HashRouter>
   )
 }
